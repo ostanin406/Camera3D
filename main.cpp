@@ -1,26 +1,24 @@
 #include <GL/glew.h>
 #include "engine.h"
 #include "texture.h"
+#include "config.h"
 
 #define DRAW_DISTANCE 500.0F
 #define SKYBOX_SIZE DRAW_DISTANCE / 2
 
-cvar_t cv_width("width", 800);
-cvar_t cv_height("height", 600);
-cvar_t cv_vsync("vsync", 0);
-cvar_t cv_msaa("msaa", 8);
-cvar_t cv_sensitivity("sensitivity", 0.2F);
-cvar_t cv_speed("speed", 10.0F);
-cvar_t cv_gravity("gravity", 10.0F);
-cvar_t cv_bounce("bounce", 3.0F);
-cvar_t cv_sky("sky", "sky");
+float* cvar_width;
+float* cvar_height;
+float* cvar_vsync;
+float* cvar_msaa;
+float* cvar_sensitivity;
+float* cvar_speed;
+float* cvar_gravity;
+float* cvar_bounce;
+std::string* cvar_sky;
 
 GLuint TexBox;
 GLuint TexGround;
-
-
-Uint32* gTexSkybox;
-
+Uint32 gTexSkybox[6];
 
 vec3_t Position(0.0F, 0.0F, 5.0F); // позиция камеры
 vec2_t Rotation; // Вращение камеры
@@ -152,19 +150,19 @@ void UpdateGame(float deltatime)
 	if (GetKeyState(SDL_SCANCODE_SPACE) == 1)
 	{
 		if (Position.y <= 0.0F)
-			movey = cv_bounce.get_float();
+			movey = *cvar_bounce;
 	}
 
 	if (movexz.length() != 0.0F)
 	{
 		movexz = movexz.normalize();
 		if (GetKeyState(SDL_SCANCODE_LSHIFT)) movexz *= 0.5F;
-		Position.x -= movexz.x * cv_speed.get_float() * deltatime;
-		Position.z -= movexz.y * cv_speed.get_float() * deltatime;
+		Position.x -= movexz.x * *cvar_speed * deltatime;
+		Position.z -= movexz.y * *cvar_speed * deltatime;
 	}
 
-	movey -= cv_gravity.get_float() * deltatime;
-	Position.y += movey * cv_speed.get_float() * deltatime;
+	movey -= *cvar_gravity * deltatime;
+	Position.y += movey * *cvar_speed * deltatime;
 
 	if (Position.y < 0.0F) Position.y = movey = 0.0F;
 
@@ -172,7 +170,7 @@ void UpdateGame(float deltatime)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	Rotation -= GetRelativeMouse() * cv_sensitivity.get_float();
+	Rotation -= GetRelativeMouse() * *cvar_sensitivity;
 
 	Rotation.x = SDL_clamp(Rotation.x, -90.0F, 90.0F);
 	if (Rotation.y < 0.0F) Rotation.y += 360.0F;
@@ -197,7 +195,7 @@ void SetWindowTitle(SDL_Window* window, Uint32 ticks)
 	if (ticks - preticks >= 1000)
 	{
 		char title[22];
-		sprintf(title, "3D %ix%i FPS: %i", cv_width.get_int(), cv_height.get_int(), frame);
+		sprintf(title, "3D %ix%i FPS: %i", (int)*cvar_width, (int)*cvar_height, frame);
 		SDL_SetWindowTitle(window, title);
 
 		preticks = ticks;
@@ -223,31 +221,41 @@ int main(int argc, char* argv[])
 	Uint32 time, pretime = 0;
 	float deltatime, dtrest;
 
+	cvar_width = register_cvar("width", 800);
+	cvar_height = register_cvar("height", 600);
+	cvar_vsync = register_cvar("vsync", 0);
+	cvar_msaa = register_cvar("msaa", 8);
+	cvar_sensitivity = register_cvar("sensitivity", 0.2F);
+	cvar_speed = register_cvar("speed", 10.0F);
+	cvar_gravity = register_cvar("gravity", 10.0F);
+	cvar_bounce = register_cvar("bounce", 3.0F);
+	cvar_sky = register_cvar("sky", "sky");
+
 	for (int i = 1; i < argc; i++)
 	{
 		char* a = &argv[i][2];
 		if (argv[i][0] == '-') switch (argv[i][1])
 		{
-		case 'w': cv_width.set_string(a); break;
-		case 'h': cv_height.set_string(a); break;
-		case 'v': cv_vsync.set_string(a); break;
-		case 'm': cv_msaa.set_string(a); break;
+		case 'w': *cvar_width = (float)atof(a); break;
+		case 'h': *cvar_height = (float)atof(a); break;
+		case 'v': *cvar_vsync = (float)atof(a); break;
+		case 'm': *cvar_msaa = (float)atof(a); break;
 		case 't': flags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN; break;
 		}
 	}
 
-	if (cv_msaa.get_int() > 1) // включаем MSAA
+	if (*cvar_msaa > 1) // включаем MSAA
 	{
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, cv_msaa.get_int());
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, (int)*cvar_msaa);
 	}
 
 #define SDL_WIN_CENTERXY SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED
-	SDL_Window* window = SDL_CreateWindow("3D", SDL_WIN_CENTERXY, cv_width.get_int(), cv_height.get_int(), flags);
+	SDL_Window* window = SDL_CreateWindow("3D", SDL_WIN_CENTERXY, (int)*cvar_width, (int)*cvar_height, flags);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE); // скрытие курсора и непрерывное движение мыши
 	SDL_GL_CreateContext(window);
-	SDL_GL_SetSwapInterval(cv_vsync.get_int());
+	SDL_GL_SetSwapInterval((int)*cvar_vsync);
 
 	bool running = true;
 	SDL_Event event;
@@ -259,20 +267,18 @@ int main(int argc, char* argv[])
 	glEnable(GL_CULL_FACE); // убираем нелицевые грани
 	glEnable(GL_TEXTURE_2D);
 
-	if (cv_msaa.get_int() > 1) // включаем MSAA
+	if (*cvar_msaa > 1) // включаем MSAA
 		glEnable(GL_MULTISAMPLE);
 
-	ResizeWindow(cv_width.get_int(), cv_height.get_int());
+	ResizeWindow((int)*cvar_width, (int)*cvar_height);
 
-	TexBox = LoadTexture("texture/box.jpg");
-	TexGround = LoadTexture("texture/ground.jpg");
-
-
-	str_t dirgame = "gamedir/material/skybox/";
-	dirgame += cv_sky.get_string();
+	LoadTexture(TexBox, "texture/box.jpg");
+	LoadTexture(TexGround, "texture/ground.jpg");
 
 
-	gTexSkybox = LoadSkybox(dirgame.cstr);
+
+
+	LoadSkybox(gTexSkybox, (std::string("gamedir/material/skybox/") + *cvar_sky).c_str());
 
 
 

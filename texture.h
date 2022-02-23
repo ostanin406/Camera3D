@@ -3,9 +3,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <SDL.h>
-
-Uint32 LoadTexture(const char* texname);
-Uint32* LoadSkybox(const char* skyname);
+bool LoadTexture(GLuint& texture, const char* texname, bool clamp = false);
+bool LoadSkybox(GLuint skybox[6], const char* skyname);
 
 #endif // TEXTURE_H
