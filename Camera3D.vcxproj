@@ -49,13 +49,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="config.cpp" />
     <ClCompile Include="engine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="config.h" />
     <ClInclude Include="engine.h" />
-    <ClInclude Include="str.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="vec.h" />
   </ItemGroup>
