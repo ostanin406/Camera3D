@@ -10,7 +10,6 @@
 void SetKeyState(SDL_Scancode scancode, Uint8 type);
 Uint32 GetKeyState(SDL_Scancode scancode);
 
-vec2_t rotate(float angle);
 vec2_t GetRelativeMouse();
 
 class CAverage

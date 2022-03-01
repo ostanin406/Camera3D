@@ -6,6 +6,8 @@
 #define DRAW_DISTANCE 500.0F
 #define SKYBOX_SIZE DRAW_DISTANCE / 2
 
+#define DEFAULT_GAMEDIR "gamedir"
+
 float* cvar_width;
 float* cvar_height;
 float* cvar_vsync;
@@ -16,8 +18,10 @@ float* cvar_gravity;
 float* cvar_bounce;
 std::string* cvar_sky;
 
-GLuint TexBox;
-GLuint TexGround;
+std::string GameDirectory = DEFAULT_GAMEDIR;
+
+GLuint* TexBox;
+GLuint* TexGround;
 Uint32 gTexSkybox[6];
 
 vec3_t Position(0.0F, 0.0F, 5.0F); // позиция камеры
@@ -25,7 +29,7 @@ vec2_t Rotation; // Вращение камеры
 
 void drawcube(float size)
 {
-	glBindTexture(GL_TEXTURE_2D, TexBox);
+	glBindTexture(GL_TEXTURE_2D, *TexBox);
 	glBegin(GL_QUADS);
 	glNormal3f(0.0F, 0.0F, 1.0F);
 	glTexCoord2f(0.0F, 0.0F); glVertex3f(-size, -size, size);
@@ -59,12 +63,12 @@ void drawcube(float size)
 	glTexCoord2f(0.0F, 1.0F); glVertex3f(-size, -size, size);
 	glEnd();
 
-	glBindTexture(GL_TEXTURE_2D, TexGround);
+	glBindTexture(GL_TEXTURE_2D, *TexGround);
 	glBegin(GL_QUADS);
 	glTexCoord2f(0.0F, 0.0F); glVertex3f(-10.0F, -size, 10.0F);
-	glTexCoord2f(1.0F, 0.0F); glVertex3f(10.0F, -size, 10.0F);
-	glTexCoord2f(1.0F, 1.0F); glVertex3f(10.0F, -size, -10.0F);
-	glTexCoord2f(0.0F, 1.0F); glVertex3f(-10.0F, -size, -10.0F);
+	glTexCoord2f(9.0F, 0.0F); glVertex3f(10.0F, -size, 10.0F);
+	glTexCoord2f(9.0F, 9.0F); glVertex3f(10.0F, -size, -10.0F);
+	glTexCoord2f(0.0F, 9.0F); glVertex3f(-10.0F, -size, -10.0F);
 	glEnd();
 }
 
@@ -153,9 +157,9 @@ void UpdateGame(float deltatime)
 			movey = *cvar_bounce;
 	}
 
-	if (movexz.length() != 0.0F)
+	if (length(movexz) != 0.0F)
 	{
-		movexz = movexz.normalize();
+		movexz = normalize(movexz);
 		if (GetKeyState(SDL_SCANCODE_LSHIFT)) movexz *= 0.5F;
 		Position.x -= movexz.x * *cvar_speed * deltatime;
 		Position.z -= movexz.y * *cvar_speed * deltatime;
@@ -231,16 +235,44 @@ int main(int argc, char* argv[])
 	cvar_bounce = register_cvar("bounce", 3.0F);
 	cvar_sky = register_cvar("sky", "sky");
 
+
 	for (int i = 1; i < argc; i++)
 	{
-		char* a = &argv[i][2];
-		if (argv[i][0] == '-') switch (argv[i][1])
+		if (argv[i][0] == '-')
 		{
-		case 'w': *cvar_width = (float)atof(a); break;
-		case 'h': *cvar_height = (float)atof(a); break;
-		case 'v': *cvar_vsync = (float)atof(a); break;
-		case 'm': *cvar_msaa = (float)atof(a); break;
-		case 't': flags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN; break;
+			if (i + 1 < argc && argv[i + 1][0] != '-')
+			{
+				if (strcmp("game", &argv[i][1]) == 0)
+				{
+					GameDirectory = argv[i + 1];
+					i++; continue;
+				}
+				if (strcmp("width", &argv[i][1]) == 0)
+				{
+					*cvar_width = (float)atof(argv[i + 1]);
+					i++; continue;
+				}
+				if (strcmp("height", &argv[i][1]) == 0)
+				{
+					*cvar_height = (float)atof(argv[i + 1]);
+					i++; continue;
+				}
+				if (strcmp("msaa", &argv[i][1]) == 0)
+				{
+					*cvar_msaa = (float)atof(argv[i + 1]);
+					i++; continue;
+				}
+			}
+			if (strcmp("vsync", &argv[i][1]) == 0)
+			{
+				*cvar_vsync = 1.0F;
+				continue;
+			}
+			if (strcmp("fullscreen", &argv[i][1]) == 0)
+			{
+				flags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN;
+				continue;
+			}
 		}
 	}
 
@@ -272,8 +304,10 @@ int main(int argc, char* argv[])
 
 	ResizeWindow((int)*cvar_width, (int)*cvar_height);
 
-	LoadTexture(TexBox, "texture/box.jpg");
-	LoadTexture(TexGround, "texture/ground.jpg");
+	TexBox = GetTexture("texture/box.jpg");
+	TexGround = GetTexture("texture/ground.jpg");
+
+
 
 
 

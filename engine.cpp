@@ -17,12 +17,6 @@ Uint32 GetKeyState(SDL_Scancode scancode)
 }
 #pragma warning(pop)
 
-vec2_t rotate(float angle)
-{
-	float rad = angle * (float)M_PI / 180.0F;
-	return vec2_t(sinf(rad), cosf(rad));
-}
-
 vec2_t GetRelativeMouse()
 {
 	int x, y;

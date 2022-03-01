@@ -39,33 +39,14 @@ struct vec2_t
 	friend vec2_t operator - (const float a, const vec2_t& b) { return vec2_t(a - b.x, a - b.y); }
 	friend vec2_t operator + (const float a, const vec2_t& b) { return vec2_t(a + b.x, a + b.y); }
 	friend vec2_t operator / (const float a, const vec2_t& b) { return vec2_t(a / b.x, a / b.y); }
-
-	vec2_t min(vec2_t a)
-	{
-		return vec2_t((x < a.x ? x : a.x), (y < a.y ? y : a.y));
-	}
-
-	vec2_t max(vec2_t a)
-	{
-		return vec2_t((x > a.x ? x : a.x), (y > a.y ? y : a.y));
-	}
-
-	vec2_t clamp(vec2_t min, vec2_t max)
-	{
-		return vec2_t((x > max.x ? max.x : (x < min.x ? min.x : x)), (y > max.y ? max.y : (y < min.y ? min.y : y)));
-	}
-
-	float length()
-	{
-		return sqrtf(x * x + y * y);
-	}
-
-	vec2_t normalize()
-	{
-		float a = sqrtf(x * x + y * y) + 1.0F;
-		return vec2_t(x / a, y / a);
-	}
 };
+
+vec2_t rotate(float angle);
+float length(vec2_t a);
+vec2_t normalize(vec2_t a);
+vec2_t clamp(vec2_t a, vec2_t min, vec2_t max);
+vec2_t max(vec2_t a, vec2_t b);
+vec2_t min(vec2_t a, vec2_t b);
 
 struct vec3_t
 {
@@ -101,37 +82,13 @@ struct vec3_t
 	friend vec3_t operator - (const float a, const vec3_t& b) { return vec3_t(a - b.x, a - b.y, a - b.z); }
 	friend vec3_t operator + (const float a, const vec3_t& b) { return vec3_t(a + b.x, a + b.y, a + b.z); }
 	friend vec3_t operator / (const float a, const vec3_t& b) { return vec3_t(a / b.x, a / b.y, a / b.z); }
-
-	vec3_t cross(vec3_t a)
-	{
-		return vec3_t((y * a.z - z * a.y), (z * a.x - x * a.z), (x * a.y - y * a.x));
-	}
-
-	vec3_t min(vec3_t a)
-	{
-		return vec3_t((x < a.x ? x : a.x), (y < a.y ? y : a.y), (z < a.z ? z : a.z));
-	}
-
-	vec3_t max(vec3_t a)
-	{
-		return vec3_t((x > a.x ? x : a.x), (y > a.y ? y : a.y), (z > a.z ? z : a.z));
-	}
-
-	vec3_t clamp(vec3_t min, vec3_t max)
-	{
-		return vec3_t((x > max.x ? max.x : (x < min.x ? min.x : x)), (y > max.y ? max.y : (y < min.y ? min.y : y)), (z > max.z ? max.z : (z < min.z ? min.z : z)));
-	}
-
-	float length()
-	{
-		return sqrtf(x * x + y * y + z * z);
-	}
-
-	vec3_t normalize()
-	{
-		float a = sqrtf(x * x + y * y + z * z) + 1.0F;
-		return vec3_t(x / a, y / a, z / a);
-	}
 };
+
+float length(vec3_t a);
+vec3_t normalize(vec3_t a);
+vec3_t clamp(vec3_t a, vec3_t min, vec3_t max);
+vec3_t max(vec3_t a, vec3_t b);
+vec3_t min(vec3_t a, vec3_t b);
+vec3_t cross(vec3_t a, vec3_t b);
 
 #endif // VEC_H

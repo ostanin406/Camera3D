@@ -4,6 +4,7 @@
 #include <SDL.h>
 #include "texture.h"
 #include <string>
+#include <map>
 
 #pragma warning(push)
 #pragma warning(disable:26812)
@@ -80,4 +81,22 @@ bool LoadSkybox(GLuint skybox[6], const char* skyname)
         }
     }
     return true;
+}
+
+std::map<std::string, GLuint> Texture;
+
+GLuint* GetTexture(const char* texname)
+{
+    std::map<std::string, GLuint>::const_iterator iter;
+
+    iter = Texture.find(texname);
+    if (iter == Texture.end())
+    {
+        if (!LoadTexture(Texture[texname], texname))
+        {
+            printf("[GetTexture] Error load texture: %s\n", texname);
+            return NULL;
+        }
+    }
+    return &Texture[texname];
 }

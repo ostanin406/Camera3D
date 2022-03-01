@@ -53,6 +53,7 @@
     <ClCompile Include="engine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="texture.cpp" />
+    <ClCompile Include="vec.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
